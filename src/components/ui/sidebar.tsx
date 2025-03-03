@@ -57,7 +57,6 @@ const SidebarProvider = React.forwardRef<
 >(
   (
     {
-      defaultOpen = true,
       open: openProp,
       onOpenChange: setOpenProp,
       className,
@@ -72,7 +71,7 @@ const SidebarProvider = React.forwardRef<
 
     // This is the internal state of the sidebar.
     // We use openProp and setOpenProp for control from outside the component.
-    const [_open, _setOpen] = React.useState(defaultOpen);
+    const [_open, _setOpen] = React.useState(!isMobile);
     const open = openProp ?? _open;
     const setOpen = React.useCallback(
       (value: boolean | ((value: boolean) => boolean)) => {
@@ -141,7 +140,7 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              "group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar",
+              "group/sidebar-wrapper fixed flex min-h-svh has-[[data-variant=inset]]:bg-sidebar",
               className
             )}
             ref={ref}
