@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ethers } from "ethers";
-import contractABI from "../../artifacts/Nestad.json";
+import { contractABI } from "@/constants";
 
 export default function MintNFT() {
   const [contractAddress, setContractAddress] = useState("");
@@ -21,11 +21,11 @@ export default function MintNFT() {
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(
         contractAddress,
-        contractABI.abi,
+        contractABI,
         signer
       );
 
-      const totalCost =  BigInt(amount);
+      const totalCost = BigInt(amount);
 
       const tx = await contract.publicMint(amount, { value: totalCost });
       await tx.wait();
