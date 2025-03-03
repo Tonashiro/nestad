@@ -1,5 +1,5 @@
 {
   "build": {
-    "ignoreBuildStep": "find ./hardhat -type f"
+    "ignore": ["hardhat/**"]
   }
 }
