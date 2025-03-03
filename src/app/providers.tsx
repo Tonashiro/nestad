@@ -10,12 +10,15 @@ import { WagmiProvider, createStorage } from "wagmi";
 import { sepolia, monadTestnet } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+const isClient = typeof window !== "undefined";
+
 const wagmiConfig = getDefaultConfig({
   appName: "Nestad",
   projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || "",
   chains: [monadTestnet, sepolia],
-  ssr: true,
-  storage: createStorage({ storage: window.localStorage }),
+  storage: createStorage({
+    storage: isClient ? window.localStorage : undefined,
+  }),
 });
 
 export function Providers({ children }: { children: React.ReactNode }) {
