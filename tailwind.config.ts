@@ -9,6 +9,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        sm: "@media (min-width: 768px)",
+      },
       colors: {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -69,6 +72,10 @@ const config: Config = {
       boxShadow: {
         sidebarShadow:
           "0 12px 12px -2px rgb(0 0 0 / 0.2), 0 -4px 15px 6px rgb(0 0 0 / 0.2)",
+      },
+      backgroundImage: {
+        "background-fade":
+          "linear-gradient(rgb(33, 26, 61) 30%, rgb(0, 0, 0) 100%)",
       },
     },
   },

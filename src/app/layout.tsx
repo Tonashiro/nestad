@@ -4,6 +4,7 @@ import { Providers } from "@/app/providers";
 import AppSidebar from "@/components/AppSidebar";
 import { Wallet } from "@/components/Wallet";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Bounce, ToastContainer } from "react-toastify";
 
 export const metadata: Metadata = {
   title: "Nestad",
@@ -18,12 +19,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="relative bg-slate-800">
+      <body className="relative flex flex-col flex-nowrap w-full min-h-[100svh] overflow-x-hidden bg-[#120c18] mb-6">
+        <div className="fixed h-full w-full bg-background-fade z-[-1]" />
         <Providers>
           <Wallet />
           <SidebarProvider>
             <AppSidebar />
           </SidebarProvider>
+          <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick={false}
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="dark"
+            transition={Bounce}
+          />
           {children}
         </Providers>
       </body>
