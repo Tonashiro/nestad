@@ -31,6 +31,7 @@ export default buildModule("NestadDeployment", (m) => {
     collectionConfig,
     saleConfig,
     royaltyFee,
+    "0x0000000000000000000000000000000000000000000000000000000000000000"
   ]);
 
   return { nestad };

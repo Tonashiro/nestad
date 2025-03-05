@@ -66,8 +66,10 @@ contract Nestad is ERC721, Ownable, ReentrancyGuard, IERC2981 {
         string memory _baseUri,
         CollectionConfig memory _collectionConfig,
         SaleConfig memory _saleConfig,
-        uint256 _royaltyFee
+        uint256 _royaltyFee,
+        bytes32 _root
     ) ERC721(_name, _symbol) {
+        root = _root;
         collectionConfig = _collectionConfig;
         saleConfig = _saleConfig;
         baseUri = _baseUri;
