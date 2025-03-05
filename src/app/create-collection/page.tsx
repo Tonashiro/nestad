@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { ethers, Addressable } from "ethers";
+import { ethers, zeroPadBytes } from "ethers";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -29,12 +29,12 @@ import { Tooltip } from "@/components/Tooltip";
 import { Divider } from "@/components/Divider";
 import { useAccount, useWalletClient } from "wagmi";
 import { contractABI, contractBytecode } from "@/constants";
+import { generateMerkleRoot } from "@/utils";
 
 export type FormValues = z.infer<typeof CreateCollectionSchema>;
 
 export default function CreateCollection() {
   const [deploying, setDeploying] = useState(false);
-  const [, setContractAddress] = useState<string | Addressable>("");
   const { data: walletClient } = useWalletClient();
 
   const { openConnectModal } = useConnectModal();
@@ -95,6 +95,14 @@ export default function CreateCollection() {
         data.whitelistPrice?.toString() ?? "0"
       );
 
+      let merkleRoot = zeroPadBytes("0x", 32);
+      if (data.hasWhitelist && data.whitelistWallets) {
+        const addresses = data.whitelistWallets
+          .split(",")
+          .map((addr) => addr.trim());
+        merkleRoot = generateMerkleRoot(addresses);
+      }
+
       const factory = new ethers.ContractFactory(
         contractABI,
         contractBytecode,
@@ -134,14 +142,32 @@ export default function CreateCollection() {
           timestamps.publicSaleStart,
           timestamps.publicSaleEnd,
         ],
-        data.royaltyFee * 100
+        data.royaltyFee * 100,
+        merkleRoot
       );
 
       toast.info("Transaction sent. Waiting for confirmation...");
       await contract.waitForDeployment();
 
-      setContractAddress(contract.target);
-      toast.success(`Contract deployed at: ${contract.target}`);
+      const collectionData = {
+        ...data,
+        collectionAddress: contract.target,
+        whitelistWallets: data.whitelistWallets
+          ? data.whitelistWallets.split(",").map((addr) => addr.trim())
+          : [],
+      };
+
+      const res = await fetch("/api/collections", {
+        method: "POST",
+        body: JSON.stringify(collectionData),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to save collection to database");
+      }
+
+      toast.success(`Collection deployed & saved successfully!`);
     } catch (error) {
       console.error("Deployment error:", error);
       toast.error(
