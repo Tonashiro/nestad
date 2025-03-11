@@ -1,13 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { ethers } from "ethers";
+import { useEffect, useState } from "react";
 import { useAccount, useWalletClient } from "wagmi";
 import { toast } from "react-toastify";
-import { contractABI } from "@/constants";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { ethers } from "ethers";
+import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import Countdown from "react-countdown";
 import { ICollection } from "@/types";
+import { QuantitySelector } from "@/components/QuantitySelector";
+import { fetchSaleConfig } from "@/app/services/fetchSaleConfig";
+import { fetchCollectionConfig } from "@/app/services/fetchCollectionConfig";
+import { mintNFT } from "@/app/services/mintNFT";
+import { fetchTotalSupply } from "@/app/services/fetchTotalSupply";
+import Image from "next/image";
+import { useLoader } from "@/context/loaderContext";
 
 interface MintPageProps {
   collection: ICollection;
@@ -16,129 +26,182 @@ interface MintPageProps {
 export default function MintPage({ collection }: MintPageProps) {
   const { address: userAddress } = useAccount();
   const { data: walletClient } = useWalletClient();
-  const [minting, setMinting] = useState(false);
   const [amount, setAmount] = useState(1);
+  const { setLoading } = useLoader();
 
-  const getPriceInWei = (price: number) => ethers.parseEther(price.toString());
+  const provider = walletClient
+    ? new ethers.BrowserProvider(walletClient.transport)
+    : null;
 
-  const mint = async (isWhitelist: boolean) => {
-    if (!walletClient) {
-      toast.error("No wallet client found. Please reconnect.");
-      return;
-    }
+  /** Fetch sale configuration */
+  const { data: saleConfig, isLoading: isSaleConfigLoading } = useQuery({
+    queryKey: ["saleConfig", collection.collectionAddress],
+    queryFn: () => fetchSaleConfig(collection.collectionAddress, provider!),
+    enabled: !!provider,
+  });
 
-    setMinting(true);
-    try {
-      const provider = new ethers.BrowserProvider(walletClient.transport);
-      const signer = await provider.getSigner();
-      const contract = new ethers.Contract(
-        collection.collectionAddress,
-        contractABI,
-        signer
-      );
+  /** Fetch total supply and max tokens with polling every 3s */
+  const { data: totalSupply, isLoading: isTotalSupplyLoading } = useQuery({
+    queryKey: ["supply", collection.collectionAddress],
+    queryFn: () => fetchTotalSupply(collection.collectionAddress, provider),
+    enabled: !!provider,
+    refetchInterval: 3000,
+  });
 
-      let tx;
+  /** Fetch max mint per transaction */
+  const { data: collectionConfig, isLoading: isCollectionConfigLoading } =
+    useQuery({
+      queryKey: ["collectionConfig", collection.collectionAddress],
+      queryFn: () =>
+        fetchCollectionConfig(collection.collectionAddress, provider!),
+      enabled: !!provider,
+    });
 
-      if (isWhitelist) {
-        const proofRes = await fetch(`/api/generateProof`, {
-          method: "POST",
-          body: JSON.stringify({
-            userAddress,
-            collectionAddress: collection.collectionAddress,
-          }),
-          headers: { "Content-Type": "application/json" },
-        });
-
-        const { proof } = await proofRes.json();
-
-        if (!proof) throw new Error("Could not generate Merkle proof");
-
-        tx = await contract.whitelistMint(proof, amount, {
-          value: getPriceInWei(collection.whitelistPrice ?? 0) * BigInt(amount),
-        });
-      } else {
-        tx = await contract.publicMint(amount, {
-          value: getPriceInWei(collection.price) * BigInt(amount),
-        });
+  /** Mint mutation */
+  const mintMutation = useMutation({
+    mutationFn: async (isWhitelist: boolean) => {
+      if (!provider || !userAddress) {
+        toast.error("Wallet not connected.");
+        throw new Error("Wallet not connected.");
       }
+      return mintNFT({
+        userAddress,
+        collection,
+        provider,
+        amount,
+        isWhitelist,
+      });
+    },
+    onSuccess: () => toast.success("NFT Minted Successfully!"),
+    onError: () => toast.error("Minting failed."),
+  });
 
-      await tx.wait();
-      toast.success("NFT Minted Successfully!");
-    } catch (error) {
-      console.error("Minting error:", error);
-      toast.error("Minting failed.");
-    }
-    setMinting(false);
-  };
+  const isFetching =
+    isSaleConfigLoading || isCollectionConfigLoading || isTotalSupplyLoading;
 
-  const publicStartTime =
-    collection?.publicSaleStart || collection?.whitelistEnd;
-  const isWhitelistActive =
-    collection?.whitelistStart &&
-    new Date() < new Date(collection.whitelistEnd!);
-  const isPublicActive =
-    publicStartTime && new Date() >= new Date(publicStartTime);
+  useEffect(() => {
+    if (!isFetching) setLoading(false);
+  }, [isFetching, setLoading]);
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-bold mb-4">{collection.name}</h2>
-      <p className="mb-4">{collection.description}</p>
-      {/* {collection.collectionImage && (
-        <img
-          src={collection.collectionImage}
-          alt={collection.name}
-          className="mb-4 rounded-lg"
-        />
-      )} */}
-      <p className="font-bold">Total Supply: {collection.maxTokens}</p>
+    <div className="grid md:grid-cols-2 items-center justify-self-center min-h-[calc(100svh-112px)] w-[80%]">
+      <Image
+        src={collection.collectionImage as string}
+        alt={collection.name}
+        width={0}
+        height={0}
+        className="w-full h-auto rounded-lg max-w-[70%]"
+      />
 
-      {/* Whitelist Mint Section */}
-      {collection.whitelistStart && (
-        <div className="mt-6 p-4 border rounded">
-          <h3 className="font-bold">Whitelist Mint</h3>
-          {isWhitelistActive ? (
-            <Countdown date={new Date(collection.whitelistEnd!)} />
-          ) : (
-            <p className="text-gray-500">Whitelist mint ended.</p>
-          )}
-          <Button
-            onClick={() => mint(true)}
-            disabled={!isWhitelistActive || minting}
-            className="mt-2 w-full"
-          >
-            {minting ? "Minting..." : "Mint with Whitelist"}
-          </Button>
-        </div>
-      )}
+      <div className="flex flex-col space-y-4 bg-[rgba(131,91,209,0.2)] backdrop-blur-2xl p-4 rounded-lg h-fit">
+        <h2 className="text-3xl font-bold">{collection.name}</h2>
+        <Link
+          href={`https://testnet.monadexplorer.com/address/${collection.collectionAddress}`}
+          target="_blank"
+          className="text-blue-400"
+        >
+          {collection.collectionAddress}
+        </Link>
 
-      {/* Public Mint Section */}
-      {publicStartTime && (
-        <div className="mt-6 p-4 border rounded">
-          <h3 className="font-bold">Public Mint</h3>
-          {isPublicActive ? (
-            <p className="text-green-600">Public mint is live!</p>
-          ) : (
-            <Countdown date={new Date(publicStartTime!)} />
-          )}
-          <Button
-            onClick={() => mint(false)}
-            disabled={!isPublicActive || minting}
-            className="mt-2 w-full"
-          >
-            {minting ? "Minting..." : "Mint Publicly"}
-          </Button>
-        </div>
-      )}
+        {collectionConfig?.maxTokens && totalSupply && (
+          <div className="flex flex-col gap-1">
+            <div className="flex justify-between">
+              <span className="font-bold">Total Minted</span>
+              <span className="font-bold">
+                {totalSupply} / {collectionConfig.maxTokens}
+              </span>
+            </div>
+            <Progress
+              value={
+                (Number(totalSupply) / Number(collectionConfig.maxTokens)) * 100
+              }
+            />
+          </div>
+        )}
 
-      {/* Input for Mint Amount */}
-      <div className="mt-4">
-        <input
-          type="number"
-          min="1"
-          value={amount}
-          onChange={(e) => setAmount(Number(e.target.value))}
-          className="w-full p-2 border rounded"
-        />
+        {collectionConfig?.mintPrice && (
+          <div className="flex flex-col gap-2">
+            <h3 className="font-bold">Price</h3>
+            <span className="font-bold text-2xl text-monad-purple">
+              {collection.hasWhitelist &&
+              new Date() < new Date(saleConfig?.whitelistEnd as number) &&
+              collectionConfig.whitelistPrice
+                ? collectionConfig.whitelistPrice * amount
+                : collectionConfig.mintPrice * amount}{" "}
+              MON
+            </span>
+          </div>
+        )}
+
+        {collectionConfig?.maxMintPerTx && (
+          <div className="flex flex-col gap-2">
+            <h3 className="font-bold">Amount to Mint</h3>
+            <QuantitySelector
+              max={collectionConfig.maxMintPerTx}
+              amount={amount}
+              setAmount={setAmount}
+            />
+          </div>
+        )}
+
+        {saleConfig && (
+          <>
+            {collection.hasWhitelist &&
+            new Date() < new Date(saleConfig.whitelistEnd) ? (
+              <>
+                {new Date() < new Date(saleConfig.whitelistStart) && (
+                  <p className="text-sm text-gray-300">
+                    Whitelist Starts in:{" "}
+                    <Countdown date={saleConfig.whitelistStart} />
+                  </p>
+                )}
+
+                {new Date() >= new Date(saleConfig.whitelistStart) && (
+                  <p className="text-sm text-gray-300">
+                    Whitelist Ends in:{" "}
+                    <Countdown date={saleConfig.whitelistEnd} />
+                  </p>
+                )}
+
+                <Button
+                  variant="secondary"
+                  onClick={() => mintMutation.mutate(true)}
+                  disabled={new Date() > new Date(saleConfig.whitelistEnd)}
+                  className="mt-2 w-full"
+                >
+                  Mint
+                </Button>
+              </>
+            ) : (
+              <>
+                {new Date() < new Date(saleConfig.publicSaleStart) && (
+                  <p className="text-sm text-gray-300">
+                    Public Mint Starts in:{" "}
+                    <Countdown date={saleConfig.publicSaleStart} />
+                  </p>
+                )}
+
+                {new Date() >= new Date(saleConfig.publicSaleStart) &&
+                  Boolean(saleConfig.publicSaleEnd) &&
+                  new Date() < new Date(saleConfig.publicSaleEnd) && (
+                    <p className="text-sm text-gray-300">
+                      Public Mint Ends in:{" "}
+                      <Countdown date={saleConfig.publicSaleEnd} />
+                    </p>
+                  )}
+
+                <Button
+                  variant="secondary"
+                  onClick={() => mintMutation.mutate(false)}
+                  disabled={new Date() < new Date(saleConfig.publicSaleStart)}
+                  className="mt-2 w-full"
+                >
+                  Mint
+                </Button>
+              </>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

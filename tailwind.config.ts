@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -14,6 +15,11 @@ const config: Config = {
       },
       colors: {
         background: "hsl(var(--background))",
+        monad: {
+          purple: "hsl(var(--monad-purple))",
+          blue: "hsl(var(--monad-blue))",
+          black: "hsl(var(--monad-black))",
+        },
         foreground: "hsl(var(--foreground))",
         card: {
           DEFAULT: "hsl(var(--card))",
