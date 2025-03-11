@@ -5,6 +5,7 @@ import AppSidebar from "@/components/AppSidebar";
 import { Wallet } from "@/components/Wallet";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Bounce, ToastContainer } from "react-toastify";
+import { LoaderProvider } from "@/context/loaderContext";
 
 export const metadata: Metadata = {
   title: "Nestad",
@@ -12,20 +13,26 @@ export const metadata: Metadata = {
     "Nestad is an intuitive platform designed to make launching NFT collections effortless and enjoyable. With a sleek UI and seamless UX, it empowers users to easily create, customize, and deploy their NFT collections all without the need for technical expertise.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="relative flex flex-col flex-nowrap w-full min-h-[100svh] overflow-x-hidden bg-[#120c18] mb-6">
+    <html lang="en" suppressHydrationWarning>
+      <body
+        suppressHydrationWarning
+        className="relative flex flex-col flex-nowrap w-full min-h-[100svh-24px] overflow-x-hidden bg-[#120c18]"
+      >
         <div className="fixed h-full w-full bg-background-fade z-[-1]" />
         <Providers>
+          <LoaderProvider>
           <Wallet />
-          <SidebarProvider>
-            <AppSidebar />
-          </SidebarProvider>
+            <SidebarProvider>
+              <AppSidebar />
+              <main className="ml-12 mr-6 mb-6 w-full text-white">{children}</main>
+            </SidebarProvider>
+          </LoaderProvider>
           <ToastContainer
             position="top-right"
             autoClose={5000}
@@ -39,7 +46,6 @@ export default function RootLayout({
             theme="dark"
             transition={Bounce}
           />
-          {children}
         </Providers>
       </body>
     </html>
