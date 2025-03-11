@@ -1,5 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
-import { keccak256 } from "ethers";
+import { getAddress, keccak256, solidityPacked } from "ethers";
 import { twMerge } from "tailwind-merge";
 import { MerkleTree } from "merkletreejs";
 
@@ -24,15 +24,18 @@ export function cn(...inputs: ClassValue[]): string {
 /**
  * Generates a Merkle root from a list of Ethereum addresses.
  *
- * This function takes a list of Ethereum addresses, hashes them using `keccak256`,
+ * This function normalizes addresses, hashes them using `keccak256(abi.encodePacked(address))`,
  * constructs a Merkle tree, and returns the Merkle root.
  *
- * @param addresses - An array of Ethereum addresses (checksummed or not).
+ * @param addresses - An array of Ethereum addresses.
  * @returns The Merkle root as a hexadecimal string.
- *
  */
 export const generateMerkleRoot = (addresses: string[]): string => {
-  const leaves = addresses.map((addr) => keccak256(addr));
+  const normalizedAddresses = addresses.map((addr) => getAddress(addr.trim()));
+
+  const leaves = normalizedAddresses.map((addr) =>
+    keccak256(solidityPacked(["address"], [addr]))
+  );
 
   const tree = new MerkleTree(leaves, keccak256, { sortPairs: true });
 
