@@ -1,9 +1,11 @@
 export interface ICollection {
   collectionAddress: string;
+  contractOwner: string;
   name: string;
   symbol: string;
   baseUri?: string;
   description?: string;
+  collectionImage?: string;
   maxTokens: number;
   price: number;
   whitelistPrice?: number;

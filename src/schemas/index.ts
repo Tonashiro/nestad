@@ -17,10 +17,15 @@ export const CreateCollectionSchema = z
       .string()
       .max(300, "Description must be at most 300 characters")
       .optional(),
+    collectionImage: z
+      .string()
+      .regex(/^data:image\/(png|jpeg|jpg|gif);base64,/, "Invalid image format")
+      .optional()
+      .or(z.literal("")),
     maxTokens: z.coerce.number().min(1, "Max supply is required"),
     price: z.coerce.number().min(0, "Price must be at least 0"),
-    whitelistPrice: z
-      .coerce.number()
+    whitelistPrice: z.coerce
+      .number()
       .min(0, "Whitelist price must be at least 0")
       .optional(),
     maxMintPerTx: z.coerce.number().min(1, "Must be at least 1"),
@@ -36,13 +41,18 @@ export const CreateCollectionSchema = z
       .min(0, "Royalty fee must be at least 0%")
       .max(9, "Max royalty fee is 9% (1% is reserved for the platform)"),
   })
-  .refine((data) => {
-    // ✅ Ensure whitelistPrice is required only when hasWhitelist is true
-    if (data.hasWhitelist && (data.whitelistPrice === undefined || isNaN(data.whitelistPrice))) {
-      return false;
+  .refine(
+    (data) => {
+      if (
+        data.hasWhitelist &&
+        (data.whitelistPrice === undefined || isNaN(data.whitelistPrice))
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Whitelist price is required when whitelist is enabled",
+      path: ["whitelistPrice"],
     }
-    return true;
-  }, {
-    message: "Whitelist price is required when whitelist is enabled",
-    path: ["whitelistPrice"], // ✅ Attach the error to the correct field
-  });
+  );

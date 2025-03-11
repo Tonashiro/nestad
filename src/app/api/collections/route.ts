@@ -35,12 +35,24 @@ export async function POST(req: Request) {
   }
 }
 
-
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await connectDB();
 
-    const collections = await Collection.find();
+    const { searchParams } = new URL(req.url);
+    const contractOwner = searchParams.get("contractOwner");
+
+    const filter = contractOwner ? { contractOwner } : {};
+
+    const collections = await Collection.find(filter, {
+      collectionAddress: 1,
+      name: 1,
+      symbol: 1,
+      description: 1,
+      maxTokens: 1,
+      collectionImage: 1,
+      _id: 0,
+    });
 
     return NextResponse.json({ collections }, { status: 200 });
   } catch (error) {
