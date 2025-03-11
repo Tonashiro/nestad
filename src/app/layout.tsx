@@ -6,6 +6,8 @@ import { Wallet } from "@/components/Wallet";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Bounce, ToastContainer } from "react-toastify";
 import { LoaderProvider } from "@/context/loaderContext";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "Nestad",
@@ -24,13 +26,18 @@ export default async function RootLayout({
         suppressHydrationWarning
         className="relative flex flex-col flex-nowrap w-full min-h-[100svh-24px] overflow-x-hidden bg-[#120c18]"
       >
+        <Analytics />
+        <SpeedInsights />
+
         <div className="fixed h-full w-full bg-background-fade z-[-1]" />
         <Providers>
           <LoaderProvider>
-          <Wallet />
+            <Wallet />
             <SidebarProvider>
               <AppSidebar />
-              <main className="ml-12 mr-6 mb-6 w-full text-white">{children}</main>
+              <main className="ml-12 mr-6 mb-6 w-full text-white">
+                {children}
+              </main>
             </SidebarProvider>
           </LoaderProvider>
           <ToastContainer
