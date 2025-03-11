@@ -30,11 +30,14 @@ import { Divider } from "@/components/Divider";
 import { useAccount, useWalletClient } from "wagmi";
 import { contractABI, contractBytecode } from "@/constants";
 import { generateMerkleRoot } from "@/utils";
+import { ICollection } from "@/types";
+import { CollectionImageUpload } from "@/components/CollectionImageUpload";
 
 export type FormValues = z.infer<typeof CreateCollectionSchema>;
 
 export default function CreateCollection() {
   const [deploying, setDeploying] = useState(false);
+  const [collectionImage, setCollectionImage] = useState("");
   const { data: walletClient } = useWalletClient();
 
   const { openConnectModal } = useConnectModal();
@@ -47,6 +50,7 @@ export default function CreateCollection() {
       symbol: "",
       baseUri: "",
       description: "",
+      collectionImage: "",
       maxTokens: undefined,
       price: undefined,
       whitelistPrice: undefined,
@@ -90,6 +94,7 @@ export default function CreateCollection() {
       const provider = new ethers.BrowserProvider(walletClient.transport);
       const signer = await provider.getSigner();
 
+      console.log("signer", signer);
       const priceInWei = ethers.parseEther(data.price.toString());
       const whitelistPriceInWei = ethers.parseEther(
         data.whitelistPrice?.toString() ?? "0"
@@ -149,9 +154,11 @@ export default function CreateCollection() {
       toast.info("Transaction sent. Waiting for confirmation...");
       await contract.waitForDeployment();
 
-      const collectionData = {
+      const collectionData: ICollection = {
         ...data,
-        collectionAddress: contract.target,
+        collectionAddress: contract.target as string,
+        contractOwner: signer.address,
+        collectionImage: collectionImage,
         whitelistWallets: data.whitelistWallets
           ? data.whitelistWallets.split(",").map((addr) => addr.trim())
           : [],
@@ -179,7 +186,7 @@ export default function CreateCollection() {
   };
 
   return (
-    <div className="w-full px-6 lg:px-0 lg:w-full">
+    <div className="w-full px-6 lg:px-0">
       <div className="lg:max-w-2xl lg:mx-auto p-6 bg-[rgba(16,12,24,.4)] backdrop-blur-2xl shadow-lg rounded-lg text-white">
         <h2 className="text-2xl font-bold mb-4">Deploy Your NFT Collection</h2>
 
@@ -253,6 +260,13 @@ export default function CreateCollection() {
                 </FormItem>
               )}
             />
+
+            <CollectionImageUpload
+              form={form}
+              collectionImage={collectionImage}
+              setCollectionImage={setCollectionImage}
+            />
+
             <FormField
               name="baseUri"
               control={form.control}
