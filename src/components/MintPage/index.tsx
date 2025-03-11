@@ -124,10 +124,12 @@ export default function MintPage({ collection }: MintPageProps) {
             <h3 className="font-bold">Price</h3>
             <span className="font-bold text-2xl text-monad-purple">
               {collection.hasWhitelist &&
-              new Date() < new Date(saleConfig?.whitelistEnd as number) &&
+              saleConfig?.whitelistEnd &&
+              saleConfig.whitelistEnd > 0 &&
+              Date.now() < saleConfig.whitelistEnd &&
               collectionConfig.whitelistPrice
                 ? collectionConfig.whitelistPrice * amount
-                : collectionConfig.mintPrice * amount}{" "}
+                : collectionConfig.mintPrice * amount}
               MON
             </span>
           </div>
@@ -147,26 +149,31 @@ export default function MintPage({ collection }: MintPageProps) {
         {saleConfig && (
           <>
             {collection.hasWhitelist &&
-            new Date() < new Date(saleConfig.whitelistEnd) ? (
+            saleConfig.whitelistEnd &&
+            new Date().getTime() < saleConfig.whitelistEnd ? (
               <>
-                {new Date() < new Date(saleConfig.whitelistStart) && (
-                  <p className="text-sm text-gray-300">
-                    Whitelist Starts in:{" "}
-                    <Countdown date={saleConfig.whitelistStart} />
-                  </p>
-                )}
+                {saleConfig.whitelistStart &&
+                  saleConfig.whitelistStart > 0 &&
+                  new Date().getTime() < saleConfig.whitelistStart && (
+                    <p className="text-sm text-gray-300">
+                      Whitelist Starts in:{" "}
+                      <Countdown date={saleConfig.whitelistStart} />
+                    </p>
+                  )}
 
-                {new Date() >= new Date(saleConfig.whitelistStart) && (
-                  <p className="text-sm text-gray-300">
-                    Whitelist Ends in:{" "}
-                    <Countdown date={saleConfig.whitelistEnd} />
-                  </p>
-                )}
+                {saleConfig.whitelistEnd &&
+                  saleConfig.whitelistEnd > 0 &&
+                  new Date().getTime() >= saleConfig.whitelistStart && (
+                    <p className="text-sm text-gray-300">
+                      Whitelist Ends in:{" "}
+                      <Countdown date={saleConfig.whitelistEnd} />
+                    </p>
+                  )}
 
                 <Button
                   variant="secondary"
                   onClick={() => mintMutation.mutate(true)}
-                  disabled={new Date() > new Date(saleConfig.whitelistEnd)}
+                  disabled={new Date().getTime() > saleConfig.whitelistEnd}
                   className="mt-2 w-full"
                 >
                   Mint
@@ -174,16 +181,19 @@ export default function MintPage({ collection }: MintPageProps) {
               </>
             ) : (
               <>
-                {new Date() < new Date(saleConfig.publicSaleStart) && (
-                  <p className="text-sm text-gray-300">
-                    Public Mint Starts in:{" "}
-                    <Countdown date={saleConfig.publicSaleStart} />
-                  </p>
-                )}
+                {saleConfig.publicSaleStart &&
+                  saleConfig.publicSaleStart > 0 &&
+                  new Date().getTime() < saleConfig.publicSaleStart && (
+                    <p className="text-sm text-gray-300">
+                      Public Mint Starts in:{" "}
+                      <Countdown date={saleConfig.publicSaleStart} />
+                    </p>
+                  )}
 
-                {new Date() >= new Date(saleConfig.publicSaleStart) &&
-                  Boolean(saleConfig.publicSaleEnd) &&
-                  new Date() < new Date(saleConfig.publicSaleEnd) && (
+                {saleConfig.publicSaleEnd &&
+                  saleConfig.publicSaleEnd > 0 &&
+                  new Date().getTime() >= saleConfig.publicSaleStart &&
+                  new Date().getTime() < saleConfig.publicSaleEnd && (
                     <p className="text-sm text-gray-300">
                       Public Mint Ends in:{" "}
                       <Countdown date={saleConfig.publicSaleEnd} />
@@ -193,7 +203,7 @@ export default function MintPage({ collection }: MintPageProps) {
                 <Button
                   variant="secondary"
                   onClick={() => mintMutation.mutate(false)}
-                  disabled={new Date() < new Date(saleConfig.publicSaleStart)}
+                  disabled={new Date().getTime() < saleConfig.publicSaleStart}
                   className="mt-2 w-full"
                 >
                   Mint
