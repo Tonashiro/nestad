@@ -1,4 +1,4 @@
-import { keccak256 } from "ethers";
+import { keccak256, getAddress, solidityPacked } from "ethers";
 import MerkleTree from "merkletreejs";
 
 /**
@@ -8,9 +8,18 @@ import MerkleTree from "merkletreejs";
  * @returns Merkle proof array
  */
 export function generateMerkleProof(addresses: string[], userAddress: string) {
-  const leaves = addresses.map((addr) => keccak256(addr));
+  const normalizedAddresses = addresses.map((addr) => getAddress(addr.trim()));
+
+  const leaves = normalizedAddresses.map((addr) =>
+    keccak256(solidityPacked(["address"], [addr]))
+  );
+
   const tree = new MerkleTree(leaves, keccak256, { sortPairs: true });
 
-  const leaf = keccak256(userAddress);
-  return tree.getHexProof(leaf);
+  const normalizedUserAddress = getAddress(userAddress.trim());
+  const leaf = keccak256(solidityPacked(["address"], [normalizedUserAddress]));
+
+  const proof = tree.getHexProof(leaf);
+
+  return proof;
 }
