@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import Image from "next/image";
 
 export default function Portfolio() {
   const [address, setAddress] = useState("");
@@ -22,7 +23,7 @@ export default function Portfolio() {
 
   // Filter states
   const [selectedCollection, setSelectedCollection] = useState<string | null>(
-    null
+    null,
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
@@ -76,13 +77,13 @@ export default function Portfolio() {
             price: floorPrice
               ? floorPrice
               : lastSalePrice
-              ? lastSalePrice
-              : null,
+                ? lastSalePrice
+                : null,
             priceLabel: floorPrice
               ? `Floor: ${floorPrice} ${floorCurrency}`
               : lastSalePrice
-              ? `Last Sale: ${lastSalePrice} ${currency}`
-              : "No price data",
+                ? `Last Sale: ${lastSalePrice} ${currency}`
+                : "No price data",
           };
         });
 
@@ -106,14 +107,14 @@ export default function Portfolio() {
 
     if (selectedCollection && selectedCollection !== "all") {
       filtered = filtered.filter(
-        (nft) => nft.contractName === selectedCollection
+        (nft) => nft.contractName === selectedCollection,
       );
     }
 
     return filtered.sort((a, b) =>
       sortOrder === "asc"
         ? (a.price || 0) - (b.price || 0)
-        : (b.price || 0) - (a.price || 0)
+        : (b.price || 0) - (a.price || 0),
     );
   }, [nfts, selectedCollection, sortOrder]);
 
@@ -172,11 +173,15 @@ export default function Portfolio() {
           filteredAndSortedNFTs.map((nft, index) => (
             <Card key={index} className="shadow-md">
               <CardContent className="p-4">
-                <img
+                <Image
                   src={nft.image}
                   alt={nft.name}
+                  height={200}
+                  width={200}
                   className="w-full h-48 object-cover rounded-md"
-                  onError={(e) => (e.currentTarget.src = "/nft_placeholder.webp")}
+                  onError={(e) =>
+                    (e.currentTarget.src = "/nft_placeholder.webp")
+                  }
                 />
                 <h2 className="text-lg font-semibold mt-2">{nft.name}</h2>
                 <p className="text-sm text-gray-600">{nft.contractName}</p>

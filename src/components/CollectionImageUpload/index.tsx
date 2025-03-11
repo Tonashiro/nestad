@@ -35,7 +35,7 @@ export const CollectionImageUpload: React.FC<ICollectionImageUpload> = ({
         reader.readAsDataURL(file);
       }
     },
-    [form]
+    [setCollectionImage],
   );
 
   const { getRootProps, getInputProps } = useDropzone({

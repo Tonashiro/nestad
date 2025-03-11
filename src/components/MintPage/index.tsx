@@ -86,11 +86,11 @@ export default function MintPage({ collection }: MintPageProps) {
   return (
     <div className="grid md:grid-cols-2 items-center justify-self-center min-h-[calc(100svh-112px)] w-[80%]">
       <Image
-        src={collection.collectionImage as string}
+        src={(collection.collectionImage as string) ?? "/nft_placeholder.webp"}
         alt={collection.name}
-        width={0}
-        height={0}
-        className="w-full h-auto rounded-lg max-w-[70%]"
+        width={200}
+        height={200}
+        className="w-full h-auto rounded-lg max-w-[70%] bg-white"
       />
 
       <div className="flex flex-col space-y-4 bg-[rgba(131,91,209,0.2)] backdrop-blur-2xl p-4 rounded-lg h-fit">
@@ -103,7 +103,7 @@ export default function MintPage({ collection }: MintPageProps) {
           {collection.collectionAddress}
         </Link>
 
-        {collectionConfig?.maxTokens && totalSupply && (
+        {collectionConfig?.maxTokens && (
           <div className="flex flex-col gap-1">
             <div className="flex justify-between">
               <span className="font-bold">Total Minted</span>
@@ -119,7 +119,7 @@ export default function MintPage({ collection }: MintPageProps) {
           </div>
         )}
 
-        {collectionConfig?.mintPrice && (
+        {collectionConfig && collectionConfig.mintPrice >= 0 && (
           <div className="flex flex-col gap-2">
             <h3 className="font-bold">Price</h3>
             <span className="font-bold text-2xl text-monad-purple">
@@ -129,7 +129,7 @@ export default function MintPage({ collection }: MintPageProps) {
               Date.now() < saleConfig.whitelistEnd &&
               collectionConfig.whitelistPrice
                 ? collectionConfig.whitelistPrice * amount
-                : collectionConfig.mintPrice * amount}
+                : collectionConfig.mintPrice * amount}{" "}
               MON
             </span>
           </div>
@@ -152,8 +152,7 @@ export default function MintPage({ collection }: MintPageProps) {
             saleConfig.whitelistEnd &&
             new Date().getTime() < saleConfig.whitelistEnd ? (
               <>
-                {saleConfig.whitelistStart &&
-                  saleConfig.whitelistStart > 0 &&
+                {saleConfig.whitelistStart > 0 &&
                   new Date().getTime() < saleConfig.whitelistStart && (
                     <p className="text-sm text-gray-300">
                       Whitelist Starts in:{" "}
@@ -161,8 +160,7 @@ export default function MintPage({ collection }: MintPageProps) {
                     </p>
                   )}
 
-                {saleConfig.whitelistEnd &&
-                  saleConfig.whitelistEnd > 0 &&
+                {saleConfig.whitelistEnd > 0 &&
                   new Date().getTime() >= saleConfig.whitelistStart && (
                     <p className="text-sm text-gray-300">
                       Whitelist Ends in:{" "}
@@ -181,8 +179,7 @@ export default function MintPage({ collection }: MintPageProps) {
               </>
             ) : (
               <>
-                {saleConfig.publicSaleStart &&
-                  saleConfig.publicSaleStart > 0 &&
+                {saleConfig.publicSaleStart > 0 &&
                   new Date().getTime() < saleConfig.publicSaleStart && (
                     <p className="text-sm text-gray-300">
                       Public Mint Starts in:{" "}
@@ -190,8 +187,7 @@ export default function MintPage({ collection }: MintPageProps) {
                     </p>
                   )}
 
-                {saleConfig.publicSaleEnd &&
-                  saleConfig.publicSaleEnd > 0 &&
+                {saleConfig.publicSaleEnd > 0 &&
                   new Date().getTime() >= saleConfig.publicSaleStart &&
                   new Date().getTime() < saleConfig.publicSaleEnd && (
                     <p className="text-sm text-gray-300">

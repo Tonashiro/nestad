@@ -36,7 +36,7 @@ export default function MyCollections() {
 
         const supply = await fetchTotalSupply(
           collection.collectionAddress,
-          provider
+          provider,
         );
         return { [collection.collectionAddress]: supply };
       });
@@ -87,7 +87,7 @@ export default function MyCollections() {
                   </p>
 
                   <div className="relative pt-2">
-                    <span className="absolute left-0 right-0 bottom-2 text-center text-xs font-semibold">
+                    <span className="absolute left-0 right-0 bottom-3 text-center text-xs font-semibold">
                       {totalSupply} / {collection.maxTokens}
                     </span>
                     <Progress value={progress} className="mt-2" />
