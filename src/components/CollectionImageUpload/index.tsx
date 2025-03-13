@@ -10,32 +10,38 @@ import { Tooltip } from "@/components/Tooltip";
 import Image from "next/image";
 
 export interface ICollectionImageUpload {
+  variant: "default" | "uri";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: any;
-  collectionImage: string;
-  setCollectionImage: Dispatch<SetStateAction<string>>;
+  imagePreview: string;
+  setImagePreview: Dispatch<SetStateAction<string>>;
+  setCollectionImageFile?: Dispatch<SetStateAction<File | undefined>>;
 }
 
 export const CollectionImageUpload: React.FC<ICollectionImageUpload> = ({
   form,
-  collectionImage,
-  setCollectionImage,
+  variant,
+  imagePreview,
+  setImagePreview,
+  setCollectionImageFile,
 }) => {
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
 
       if (file) {
+        if (setCollectionImageFile) setCollectionImageFile(file);
+
         const reader = new FileReader();
         reader.onloadend = () => {
           if (typeof reader.result === "string") {
-            setCollectionImage(reader.result);
+            setImagePreview(reader.result);
           }
         };
         reader.readAsDataURL(file);
       }
     },
-    [setCollectionImage],
+    [setImagePreview, setCollectionImageFile]
   );
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -55,7 +61,11 @@ export const CollectionImageUpload: React.FC<ICollectionImageUpload> = ({
       render={() => (
         <FormItem>
           <div className="flex items-center gap-2">
-            <FormLabel>Collection Image</FormLabel>
+            <FormLabel>
+              {variant === "uri"
+                ? "Upload your NFT image"
+                : "Collection Preview Image"}
+            </FormLabel>
             <Tooltip>
               Upload or drop an image for your collection (PNG, JPEG, JPG, GIF).
             </Tooltip>
@@ -67,15 +77,15 @@ export const CollectionImageUpload: React.FC<ICollectionImageUpload> = ({
           >
             <input {...getInputProps()} />
             <p className="text-sm text-muted-foreground">
-              Drag & drop an image here, or click to select a file
+            {variant === "uri" ? "Drag & drop your NFT image, or click to select a file" : "Drag & drop an image here, or click to select a file"}
             </p>
           </div>
 
-          {collectionImage && (
+          {imagePreview && (
             <div className="mt-3">
               <p className="text-sm text-muted-foreground">Preview:</p>
               <Image
-                src={collectionImage}
+                src={imagePreview}
                 alt="Collection Preview"
                 className="rounded-lg border border-gray-300 mt-1"
                 width={200}
