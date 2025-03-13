@@ -17,7 +17,7 @@ export const CreateCollectionSchema = z
       .string()
       .max(300, "Description must be at most 300 characters")
       .optional(),
-    collectionImage: z
+    collectionImagePreview: z
       .string()
       .regex(/^data:image\/(png|jpeg|jpg|gif);base64,/, "Invalid image format")
       .optional()

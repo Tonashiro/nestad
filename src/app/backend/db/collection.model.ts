@@ -13,6 +13,11 @@ const CollectionSchema = new Schema<CollectionSchema>(
       unique: true,
     },
     contractOwner: { type: String, required: true },
+    type: {
+      type: String,
+      enum: ["UNIQUE_ART", "SAME_ART"], 
+      required: true,
+    },
     name: { type: String, required: true, minlength: 3, maxlength: 50 },
     symbol: { type: String, required: true, minlength: 3, maxlength: 10 },
     baseUri: { type: String },
