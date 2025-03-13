@@ -18,8 +18,6 @@ export async function GET(
 
     const collectionAddress = params.id;
 
-    console.log("collection", collectionAddress);
-
     const collection = await Collection.findOne({ collectionAddress });
 
     if (!collection) {
