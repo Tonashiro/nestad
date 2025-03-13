@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "compile": "npx hardhat compile",
-    "deploy": "npx hardhat ignition deploy ignition/modules/Nestad.ts --network monadTestnet",
+    "deploy": "npx hardhat ignition deploy ignition/modules/Nestad1155.ts --network monadTestnet",
     "verify": "node scripts/verifyContract.js",
     "test": "npx hardhat test"
   },
@@ -17,6 +17,7 @@
     "@nomicfoundation/hardhat-viem": "^2.0.0",
     "@nomicfoundation/ignition-core": "^0.15.10",
     "@openzeppelin/contracts": "4.5.0",
+    "@openzeppelin/contracts-upgradeable": "4.5.0",
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^7.1.6",
     "@types/mocha": ">=9.1.0",

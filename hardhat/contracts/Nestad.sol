@@ -207,10 +207,10 @@ contract Nestad is ERC721, Ownable, ReentrancyGuard, IERC2981 {
     function royaltyInfo(
         uint256,
         uint256 _salePrice
-    ) external view returns (address receiver, uint256 royaltyAmount) {
-        uint256 platformShare = (_salePrice * PLATFORM_ROYALTY) / 10000;
-        uint256 ownerShare = (_salePrice * royaltyFee) / 10000;
-        return (owner(), ownerShare - platformShare);
+    ) external view override returns (address receiver, uint256 royaltyAmount) {
+        uint256 totalRoyalty = (_salePrice * (royaltyFee + PLATFORM_ROYALTY)) /
+            10000;
+        return (address(this), totalRoyalty);
     }
 
     function toggleWhitelistSale() external onlyOwner {

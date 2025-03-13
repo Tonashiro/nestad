@@ -11,7 +11,7 @@ const config: Config = {
   theme: {
     extend: {
       screens: {
-        sm: "@media (min-width: 768px)",
+        sm: "768px",
       },
       colors: {
         background: "hsl(var(--background))",

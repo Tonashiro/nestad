@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.2",
+    "@radix-ui/react-checkbox": "^1.1.4",
     "@radix-ui/react-dialog": "^1.1.6",
     "@radix-ui/react-label": "^2.1.2",
     "@radix-ui/react-menubar": "^1.1.6",
@@ -59,6 +60,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/react-flatpickr": "^3.8.11",
+    "aos": "^2.3.4",
     "eslint": "^8",
     "eslint-config-next": "14.2.24",
     "flatpickr": "^4.6.13",
@@ -66,6 +68,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^15.4.3",
     "merkletreejs": "^0.5.1",
+    "pinata": "^2.0.1",
     "postcss": "^8",
     "prettier": "^3.5.2",
     "react-countdown": "^2.3.6",
