@@ -99,13 +99,13 @@ export default function AppSidebar() {
               </SidebarMenuItem>
 
               <SidebarMenuItem>
-                <Link href="/my-collections">
+                <Link href="/collections">
                   <SidebarMenuButton
-                    isActive={pathname === "/my-collections"}
-                    tooltip="My Collections"
+                    isActive={pathname === "/collections"}
+                    tooltip="Collections"
                   >
                     <Layers className="h-5 w-5" />
-                    {isExpanded && " My Collections"}
+                    {isExpanded && "Collections"}
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
@@ -141,21 +141,21 @@ export default function AppSidebar() {
           <SidebarFooter className="h-full items-center justify-end gap-0">
             <div className={cn("flex list-none", !isExpanded && "flex-col")}>
               <SidebarMenuItem>
-                <Link href="https://www.x.com/tonashiro_" target="_blank">
+                <Link href="https://www.x.com/nestad_xyz" target="_blank">
                   <SidebarMenuButton>
                     <FaTwitter size={24} />
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <Link href="https://www.discord.gg/tonashiro" target="_blank">
+                <Link href="https://discord.gg/RBNyg6aDGw" target="_blank">
                   <SidebarMenuButton>
                     <FaDiscord size={24} />
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <Link href="https://www.x.com/tonashiro" target="_blank">
+                <Link href="https://github.com/Tonashiro/nestad" target="_blank">
                   <SidebarMenuButton>
                     <FaGithub size={24} />
                   </SidebarMenuButton>
