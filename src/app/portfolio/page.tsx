@@ -1,8 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useMemo } from "react";
-import { Input } from "@/components/ui/input";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useAccount } from "wagmi";
+import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,134 +14,85 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import Image from "next/image";
+import { fetchNFTs } from "@/services/fetchNFTs";
+import { Bars } from "react-loader-spinner";
 
+/**
+ * Portfolio Component - Displays user's Monad NFTs with sorting and filtering
+ */
 export default function Portfolio() {
-  const [address, setAddress] = useState("");
-  const [nfts, setNfts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-
-  // Filter states
-  const [selectedCollection, setSelectedCollection] = useState<string | null>(
-    null,
+  const { address } = useAccount();
+  const [selectedCollection, setSelectedCollection] = useState<string | "all">(
+    "all"
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
-  // Extract unique collections from fetched NFTs
-  const uniqueCollections = useMemo(() => {
-    const collections = new Set(nfts.map((nft) => nft.contractName));
-    return Array.from(collections);
-  }, [nfts]);
+  /** Fetch NFTs with Infinite Scrolling */
+  const { data, isFetching, fetchNextPage, hasNextPage } = useInfiniteQuery({
+    queryKey: ["nfts", address],
+    queryFn: async ({ pageParam = "" }) => fetchNFTs(address, pageParam),
+    enabled: !!address,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialPageParam: "",
+  });
 
-  const fetchNFTs = async (cursor = "") => {
-    if (!address) {
-      setError("Please enter a wallet address.");
-      return;
-    }
+  const nfts = useMemo(
+    () => data?.pages.flatMap((page) => page.nfts) || [],
+    [data]
+  );
 
-    setError("");
-    setLoading(true);
+  const uniqueCollections = useMemo(
+    () => Array.from(new Set(nfts.map((nft) => nft.contractName))),
+    [nfts]
+  );
 
-    try {
-      const res = await fetch("/api/getNFTs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address, cursor }),
-      });
-
-      const data = await res.json();
-
-      if (data?.nfts?.length > 0) {
-        const newNfts = data.nfts.map((nft: any) => {
-          // Get last sale price
-          const sale = nft.last_sale || nft.primary_sale;
-          const lastSalePrice = sale ? sale.unit_price / 10 ** 18 : null; // Convert from Wei
-          const currency = sale?.payment_token?.symbol || "MON";
-
-          // Get floor price (lowest listing in the collection)
-          const floorPriceEntry = nft.collection?.floor_prices?.[0];
-          const floorPrice = floorPriceEntry
-            ? floorPriceEntry.amount / 10 ** 18
-            : null;
-          const floorCurrency = floorPriceEntry?.payment_token?.symbol || "MON";
-
-          return {
-            name: nft.name || `Token #${nft.token_id}`,
-            contractName: nft.collection?.name || "Unknown Collection",
-            contractAddress: nft.contract_address,
-            tokenId: nft.token_id,
-            image:
-              nft.image_url ||
-              nft.previews?.image_medium_url ||
-              "/nft_placeholder.webp",
-            price: floorPrice
-              ? floorPrice
-              : lastSalePrice
-                ? lastSalePrice
-                : null,
-            priceLabel: floorPrice
-              ? `Floor: ${floorPrice} ${floorCurrency}`
-              : lastSalePrice
-                ? `Last Sale: ${lastSalePrice} ${currency}`
-                : "No price data",
-          };
-        });
-
-        setNfts(cursor ? [...nfts, ...newNfts] : newNfts);
-        setNextCursor(data.next_cursor || null);
-      } else {
-        if (!cursor) setNfts([]);
-        setError("No NFTs found.");
-      }
-    } catch (err) {
-      setError("Failed to fetch NFTs.");
-      console.error(err);
-    }
-
-    setLoading(false);
-  };
-
-  // Apply filters and sorting
   const filteredAndSortedNFTs = useMemo(() => {
-    let filtered = nfts;
+    let filteredNFTs = nfts;
 
-    if (selectedCollection && selectedCollection !== "all") {
-      filtered = filtered.filter(
-        (nft) => nft.contractName === selectedCollection,
+    if (selectedCollection !== "all") {
+      filteredNFTs = filteredNFTs.filter(
+        (nft) => nft.contractName === selectedCollection
       );
     }
 
-    return filtered.sort((a, b) =>
+    return filteredNFTs.sort((a, b) =>
       sortOrder === "asc"
         ? (a.price || 0) - (b.price || 0)
-        : (b.price || 0) - (a.price || 0),
+        : (b.price || 0) - (a.price || 0)
     );
   }, [nfts, selectedCollection, sortOrder]);
 
+  /** Automatically fetch the next page when scrolling near the bottom */
+  useEffect(() => {
+    if (!hasNextPage) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetching) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 1.0 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetching]);
+
   return (
-    <div className="min-h-screen flex flex-col items-center p-6">
+    <main className="min-h-screen flex flex-col items-center p-6">
       <h1 className="text-3xl font-bold mb-4">Monad NFT Portfolio</h1>
 
-      <div className="flex space-x-2 mb-6">
-        <Input
-          placeholder="Wallet Address"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className="w-64"
-        />
-        <Button onClick={() => fetchNFTs()} disabled={loading}>
-          {loading ? "Loading..." : "Fetch NFTs"}
-        </Button>
-      </div>
-
-      {error && <p className="text-red-500">{error}</p>}
-
-      {/* Filter Options */}
-      <div className="flex space-x-4 mb-4">
-        {/* Collection Dropdown */}
-        <Select onValueChange={setSelectedCollection} defaultValue="all">
+      <div className="flex flex-wrap gap-4 mb-6">
+        {/* Collection Filter */}
+        <Select
+          onValueChange={(value) => setSelectedCollection(value)}
+          defaultValue="all"
+        >
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Filter by Collection" />
           </SelectTrigger>
@@ -153,7 +106,7 @@ export default function Portfolio() {
           </SelectContent>
         </Select>
 
-        {/* Price Sorting */}
+        {/* Sorting */}
         <Select
           onValueChange={(value) => setSortOrder(value as "asc" | "desc")}
           defaultValue="desc"
@@ -168,10 +121,14 @@ export default function Portfolio() {
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl">
-        {filteredAndSortedNFTs.length > 0 &&
+      {/* NFTs Grid */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 w-full max-w-5xl">
+        {filteredAndSortedNFTs.length > 0 ? (
           filteredAndSortedNFTs.map((nft, index) => (
-            <Card key={index} className="shadow-md">
+            <Card
+              key={`${nft.contractAddress}-${nft.tokenId}-${index}`}
+              className="shadow-md"
+            >
               <CardContent className="p-4">
                 <Image
                   src={nft.image}
@@ -183,30 +140,44 @@ export default function Portfolio() {
                     (e.currentTarget.src = "/nft_placeholder.webp")
                   }
                 />
-                <h2 className="text-lg font-semibold mt-2">{nft.name}</h2>
+                <h2 className="text-lg font-semibold mt-2 text-monad-purple">
+                  {nft.name}
+                </h2>
                 <p className="text-sm text-gray-600">{nft.contractName}</p>
-                <p className="text-xs text-gray-500">
-                  Contract: {nft.contractAddress}
+                <p className="text-xs text-gray-500 text-ellipsis overflow-hidden">
+                  {nft.contractAddress}
                 </p>
-                <p className="text-xs text-gray-500">Token ID: {nft.tokenId}</p>
-                <p className="text-xs text-blue-600 font-bold">
-                  {nft.priceLabel}
-                </p>
+
+                <Link
+                  href={`https://magiceden.io/item-details/monad-testnet/${nft.contractAddress}/${nft.tokenId}`}
+                  target="_blank"
+                >
+                  <Button className="mt-3 w-full bg-monad-purple hover:opacity-80 hover:bg-monad-purple">
+                    Trade on ME
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
-          ))}
-      </div>
+          ))
+        ) : (
+          <p className="text-gray-500">No NFTs found.</p>
+        )}
+      </section>
 
-      {/* Pagination Button */}
-      {nextCursor && (
-        <Button
-          variant="outline"
-          className="mt-6"
-          onClick={() => fetchNFTs(nextCursor)}
-        >
-          Load More NFTs
-        </Button>
+      {/* Invisible element to trigger infinite scroll */}
+      <div ref={loadMoreRef} className="h-10 w-full" />
+
+      {isFetching && (
+        <div className="flex justify-center items-center w-full">
+          <Bars
+            height="60"
+            width="60"
+            color="hsl(var(--monad-purple))"
+            ariaLabel="bars-loading"
+            visible={true}
+          />
+        </div>
       )}
-    </div>
+    </main>
   );
 }
