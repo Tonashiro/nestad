@@ -11,9 +11,9 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import Head from "next/head";
 
 export const metadata: Metadata = {
-  title: "Nestad - Effortless NFT Collection Creation",
+  title: "Nestad - Join the Monad nest. Launch with Nestad",
   description:
-    "Nestad is the ultimate platform for effortlessly launching NFT collections. Create, customize, and deploy NFTs on the blockchain with ease—no coding required.",
+    "Create, customize, and deploy NFT collections effortlessly with Nestad. No coding required.",
   keywords:
     "NFT, NFT launch, blockchain, crypto, NFT collection, web3, smart contracts, Ethereum, Solana, NFT minting, NFT marketplace, crypto collectibles",
   authors: [{ name: "Tonashiro" }],
@@ -24,9 +24,9 @@ export const metadata: Metadata = {
     canonical: "https://www.nestad.xyz",
   },
   openGraph: {
-    title: "Nestad - Effortless NFT Collection Creation",
+    title: "Nestad - Join the Monad nest. Launch with Nestad",
     description:
-      "Launch your NFT collection effortlessly with Nestad. Create, customize, and deploy on-chain without coding.",
+      "Create, customize, and deploy NFT collections effortlessly with Nestad. No coding required.",
     url: "https://www.nestad.xyz",
     siteName: "Nestad",
     images: [
@@ -44,10 +44,17 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     site: "@nestadxyz",
     creator: "@nestadxyz",
-    title: "Nestad - Effortless NFT Collection Creation",
+    title: "Nestad - Join the Monad nest. Launch with Nestad",
     description:
       "Create, customize, and deploy NFT collections effortlessly with Nestad. No coding required.",
-    images: ["https://www.nestad.xyz/twitter_card.png"],
+    images: [
+      {
+        url: "https://www.nestad.xyz/twitter_card.png",
+        width: 1200,
+        height: 630,
+        alt: "Nestad - Effortless NFT Collection Creation",
+      },
+    ],
   },
 };
 
