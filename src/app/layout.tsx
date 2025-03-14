@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     siteName: "Nestad",
     images: [
       {
-        url: "https://www.nestad.xyz/nestad_logo.webp",
+        url: "https://www.nestad.xyz/twitter_card.png",
         width: 1200,
         height: 630,
         alt: "Nestad - Effortless NFT Collection Creation",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     title: "Nestad - Effortless NFT Collection Creation",
     description:
       "Create, customize, and deploy NFT collections effortlessly with Nestad. No coding required.",
-    images: ["https://www.nestad.xyz/nestad_logo.webp"],
+    images: ["https://www.nestad.xyz/twitter_card.png"],
   },
 };
 
