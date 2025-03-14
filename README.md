@@ -123,8 +123,13 @@ Nestad is built using **modern Web3 & Web2 technologies**:
 ---
 
 ## 🚀 Deployment
-#### Deploying Smart Contracts (Hardhat)
-To deploy the smart contracts, we will use ignition. You can simply run the command:
+#### Smart Contract Deployment (Hardhat & Ignition):
+##### 1. Compile Contracts:
+  ```sh
+    yarn compile
+  ```
+
+##### 2. To deploy the smart contracts, we will use ignition. You can simply run the command:
   ```sh
     npx hardhat ignition deploy ignition/modules/Nestad1155.ts --network monadTestnet
   ```
@@ -132,6 +137,11 @@ To deploy the smart contracts, we will use ignition. You can simply run the comm
 You can modify the contract parameters as well, you can go to `/hardhat/ignition/modules` and access the contract you want to deploy, update the fields and run the command again.
 
 ##### NOTE: modify the path on the script above, according to the contract you want to deploy
+
+##### 3. Verify on Etherscan:
+  ```sh
+    yarn verify DEPLOYED_CONTRACT_ADDRESS
+  ```
 
 ---
 
